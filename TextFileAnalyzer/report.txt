@@ -1,0 +1,27 @@
+
+=== TEXT FILE CONTENT ANALYZER ===
+Characters: 32
+Words     : 6
+Lines     : 2
+
+Letter Frequencies:
+a : 1
+c : 1
+d : 1
+e : 1
+f : 1
+g : 2
+h : 1
+i : 2
+l : 3
+m : 2
+n : 2
+o : 3
+p : 1
+r : 3
+s : 1
+u : 1
+w : 1
+
+Most frequent letter(s): l o r 
+Maximum frequency: 3
