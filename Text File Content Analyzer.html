@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Text File Content Analyzer</title>
+<style>
+:root{--bg:#f2f4f7;--surf:#fff;--ink:#14213d;--mute:#5b6577;--line:#d5dae3;--acc:#0f766e;--acc2:#b45309;--code:#0f1a2b;--codeink:#d7e3f4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e141c;--surf:#161e29;--ink:#e6ecf5;--mute:#93a0b4;--line:#2a3547;--acc:#2dd4bf;--acc2:#fbbf24;--code:#0a0f16;--codeink:#d7e3f4}}
+:root[data-theme="dark"]{--bg:#0e141c;--surf:#161e29;--ink:#e6ecf5;--mute:#93a0b4;--line:#2a3547;--acc:#2dd4bf;--acc2:#fbbf24;--code:#0a0f16;--codeink:#d7e3f4}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;line-height:1.2;margin:0 0 .5em}
+h1{font-size:clamp(1.8rem,5vw,2.6rem)}h2{font-size:1.4rem}h3{font-size:1.05rem}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+header{padding:28px 0 8px}header p{color:var(--mute);max-width:62ch;margin:0}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:22px 0;border-bottom:1px solid var(--line)}
+nav button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font:inherit;color:var(--mute);cursor:pointer}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--acc);font-weight:600}
+button:focus-visible,summary:focus-visible,textarea:focus-visible,.drop:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+section[hidden]{display:none}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:16px}
+.drop{border:2px dashed var(--line);border-radius:8px;padding:26px;text-align:center;cursor:pointer;color:var(--mute)}
+.drop.on{border-color:var(--acc);color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#06201c}}
+.btn.alt{background:none;color:var(--ink);border:1px solid var(--line)}
+textarea{width:100%;min-height:110px;background:var(--surf);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;font:14px ui-monospace,Consolas,monospace}
+.files{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 0}
+.chip{border:1px solid var(--line);background:var(--surf);color:var(--ink);border-radius:999px;padding:4px 12px;font:inherit;font-size:.9rem;cursor:pointer}
+.chip[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{border-left:4px solid var(--acc);padding:4px 12px}.stat b{display:block;font:700 1.9rem Georgia,serif}.stat span{color:var(--mute);font-size:.9rem}
+.bars{display:grid;grid-template-columns:repeat(26,1fr);gap:3px;align-items:end;height:170px;margin-top:12px}
+.bar{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:.7rem;color:var(--mute)}
+.bar i{display:block;width:100%;background:var(--acc);opacity:.45;border-radius:3px 3px 0 0;min-height:1px}
+.bar.top i{background:var(--acc2);opacity:1}.bar.top{color:var(--ink);font-weight:700}
+pre{background:var(--code);color:var(--codeink);border-radius:8px;padding:14px;overflow-x:auto;font:13px/1.5 ui-monospace,Consolas,monospace;margin:0;max-width:100%}
+.verdict{padding:12px 14px;border-radius:6px;background:color-mix(in srgb,var(--acc2) 14%,transparent);border:1px solid var(--acc2)}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.pass{color:var(--acc);font-weight:700}.fail{color:#c0392b;font-weight:700}
+details{border-bottom:1px solid var(--line);padding:10px 0}summary{cursor:pointer;font-weight:600}details p{margin:.5em 0 0;color:var(--mute)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:700px){.two{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.bars{gap:1px}.bar{font-size:.55rem}}
+.small{color:var(--mute);font-size:.9rem}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:height .35s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<h1>Text File Content Analyzer</h1>
+<p>Counts characters, words and lines in a text file, tallies how often each letter appears, and names the most frequent letter. This site runs the same algorithm as my C program (<code>main.c</code>) so you can try it on any .txt file.</p>
+</header>
+<nav role="tablist" id="tabs">
+<button role="tab" aria-selected="true" data-t="a">Analyzer</button>
+<button role="tab" aria-selected="false" data-t="d">Review 1: Design</button>
+<button role="tab" aria-selected="false" data-t="i">Review 2: Testing</button>
+<button role="tab" aria-selected="false" data-t="v">Review 3: Demo &amp; viva</button>
+</nav>
+
+<section id="a">
+<div class="card">
+<div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose text files">Drop .txt files here, or click to choose them</div>
+<input type="file" id="fi" accept=".txt,text/plain" multiple hidden>
+<div class="files" id="files"></div>
+<p class="small">Or paste text below. Your files stay in your browser and are never uploaded.</p>
+<textarea id="ta" aria-label="Paste text to analyze" placeholder="Type or paste text here"></textarea>
+<div class="row" style="margin-top:10px"><button class="btn" id="go">Analyze text</button><button class="btn alt" id="sample">Load sample</button></div>
+</div>
+<div id="out" hidden>
+<div class="card"><h2 id="fname">Result</h2>
+<div class="stats"><div class="stat"><b id="sc">0</b><span>Characters</span></div><div class="stat"><b id="sw">0</b><span>Words</span></div><div class="stat"><b id="sl">0</b><span>Lines</span></div></div></div>
+<div class="card"><h3>Letter frequencies</h3><div class="bars" id="bars" aria-hidden="true"></div>
+<p class="verdict" id="top" style="margin-top:14px"></p></div>
+<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h3 style="margin:0">report.txt</h3><div class="row"><button class="btn alt" id="copy">Copy report</button><button class="btn" id="dl">Download report.txt</button></div></div><pre id="rep"></pre></div>
+</div>
+</section>
+
+<section id="d" hidden>
+<div class="card"><h2>Problem and users</h2>
+<p>Read a text file and count its characters, words and lines. Count how often each of the 26 letters appears, then report the most frequent letter. <b>Tie rule:</b> when several letters share the highest count, all of them are listed in alphabetical order.</p>
+<p>Users are students and teachers who want a quick profile of a text file. C concepts covered: strings, pointers, loops, functions and file handling.</p></div>
+<div class="two">
+<div class="card"><h3>Inputs</h3><p>A file name typed at the prompt (up to 255 characters, no spaces).</p><h3>Outputs</h3><p>A report on screen and the same report saved to <code>report.txt</code>.</p></div>
+<div class="card"><h3>Constraints</h3><p>Only English letters A to Z are counted, case-insensitively. Digits and symbols count as characters but not as letters. The file opens in binary mode so every byte is counted.</p></div>
+</div>
+<div class="card"><h3>Algorithm</h3>
+<pre>open file
+for each byte c until end of file:
+    characters++
+    if c is newline: lines++
+    if c is whitespace: inWord = false
+    else if not inWord: words++, inWord = true
+    if c is a letter: frequency[lower(c) - 'a']++
+if characters &gt; 0 and last byte is not newline: lines++
+max = largest frequency
+print every letter whose frequency equals max</pre>
+<p class="small">A word is a run of non-whitespace characters. The final line counts even without a trailing newline.</p></div>
+<div class="card"><h3>Expected result from my C run</h3>
+<p class="small">Screenshot of <code>report.txt</code>: 32 characters, 6 words, 2 lines. Letters l, o and r tie at 3, so the program prints <code>l o r</code> with maximum frequency 3.</p>
+<pre>Characters: 32
+Words     : 6
+Lines     : 2
+Most frequent letter(s): l o r
+Maximum frequency: 3</pre></div>
+</section>
+
+<section id="i" hidden>
+<div class="card"><h2>Modular implementation</h2>
+<div class="scroll"><table><tr><th>Part</th><th>Job</th></tr>
+<tr><td><code>Analysis</code> struct</td><td>Holds characters, words, lines and <code>frequency[26]</code> together so they pass as one pointer.</td></tr>
+<tr><td><code>analyzeFile()</code></td><td>Single pass over the file using <code>fgetc</code>, updating the struct through a pointer.</td></tr>
+<tr><td><code>displayReport()</code></td><td>Writes the report to any <code>FILE*</code>, so one function serves both screen and <code>report.txt</code>.</td></tr>
+<tr><td><code>main()</code></td><td>Reads the file name, opens files, checks every <code>fopen</code> for NULL, calls the two functions.</td></tr></table></div></div>
+<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Test evidence</h2><button class="btn" id="run">Run tests</button></div>
+<p class="small">These cases run the same counting logic in your browser and compare against hand-worked answers.</p>
+<div class="scroll"><table id="tt"></table></div></div>
+<div class="card"><h2>Edge cases handled</h2>
+<ul><li>Empty file: all counts are 0 and the report says no letters were found.</li>
+<li>Missing trailing newline: the last line is still counted.</li>
+<li>Whitespace-only and digit-only files: zero words or zero letters, with no crash.</li>
+<li>Windows line endings: <code>\r</code> counts as a character and as whitespace.</li>
+<li>Non-ASCII bytes: cast to <code>unsigned char</code> before <code>isalpha</code> to avoid undefined behavior.</li>
+<li>Bad input: unreadable file name or failed <code>fopen</code> prints an error and exits with code 1.</li></ul></div>
+</section>
+
+<section id="v" hidden>
+<div class="card"><h2>Complexity</h2>
+<p><b>Time: O(n)</b> for a file of n bytes, because each byte is read once. <b>Space: O(1)</b>, because the program keeps 26 counters and a few variables whatever the file size. Finding the maximum scans 26 entries, which is constant.</p></div>
+<div class="card"><h2>Viva questions</h2>
+<details><summary>Why use a struct?</summary><p>It groups related results and lets <code>analyzeFile</code> update them through one pointer instead of several.</p></details>
+<details><summary>Why open the file with "rb"?</summary><p>Binary mode counts every byte the same on every system, with no newline translation.</p></details>
+<details><summary>Why cast to unsigned char before isalpha?</summary><p><code>ctype.h</code> functions accept values from 0 to 255 or EOF. A negative <code>char</code> value is undefined behavior.</p></details>
+<details><summary>How do you detect words?</summary><p>A flag <code>inWord</code> flips to 1 on the first non-space character and back to 0 on whitespace, so each run is counted once.</p></details>
+<details><summary>What happens on a tie?</summary><p>Every letter equal to the maximum is printed in alphabetical order, as in the l o r result above.</p></details>
+<details><summary>Why one displayReport for screen and file?</summary><p>It takes a <code>FILE *out</code>, so passing <code>stdout</code> or the report file reuses the same code with no duplication.</p></details>
+</div>
+<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0">Source: main.c</h2><button class="btn alt" id="cc">Copy code</button></div>
+<pre id="code">#include &lt;stdio.h&gt;
+#include &lt;ctype.h&gt;
+
+typedef struct {
+    long characters;
+    long words;
+    long lines;
+    long frequency[26];
+} Analysis;
+
+void analyzeFile(FILE *file, Analysis *a) {
+    int ch, inWord = 0, lastChar = -1;
+
+    while ((ch = fgetc(file)) != EOF) {
+        unsigned char c = (unsigned char)ch;
+        a-&gt;characters++;
+        lastChar = ch;
+
+        if (ch == '\n')
+            a-&gt;lines++;
+
+        if (isspace(c)) {
+            inWord = 0;
+        } else if (!inWord) {
+            a-&gt;words++;
+            inWord = 1;
+        }
+
+        if (isalpha(c)) {
+            int lower = tolower(c);
+            if (lower &gt;= 'a' &amp;&amp; lower &lt;= 'z')
+                a-&gt;frequency[lower - 'a']++;
+        }
+    }
+
+    if (a-&gt;characters &gt; 0 &amp;&amp; lastChar != '\n')
+        a-&gt;lines++;
+}
+
+void displayReport(FILE *out, const Analysis *a) {
+    long max = 0;
+    int i;
+
+    for (i = 0; i &lt; 26; i++)
+        if (a-&gt;frequency[i] &gt; max)
+            max = a-&gt;frequency[i];
+
+    fprintf(out, "\n=== TEXT FILE CONTENT ANALYZER ===\n");
+    fprintf(out, "Characters: %ld\n", a-&gt;characters);
+    fprintf(out, "Words     : %ld\n", a-&gt;words);
+    fprintf(out, "Lines     : %ld\n", a-&gt;lines);
+
+    fprintf(out, "\nLetter Frequencies:\n");
+    for (i = 0; i &lt; 26; i++) {
+        if (a-&gt;frequency[i] &gt; 0)
+            fprintf(out, "%c : %ld\n", 'a' + i, a-&gt;frequency[i]);
+    }
+
+    if (max == 0) {
+        fprintf(out, "\nNo English letters found.\n");
+    } else {
+        fprintf(out, "\nMost frequent letter(s): ");
+        for (i = 0; i &lt; 26; i++)
+            if (a-&gt;frequency[i] == max)
+                fprintf(out, "%c ", 'a' + i);
+        fprintf(out, "\nMaximum frequency: %ld\n", max);
+    }
+}
+
+int main(void) {
+    char filename[256];
+    FILE *input, *report;
+    Analysis a = {0};
+
+    printf("Enter input filename: ");
+    if (scanf("%255s", filename) != 1) {
+        printf("Invalid filename input.\n");
+        return 1;
+    }
+
+    input = fopen(filename, "rb");
+    if (input == NULL) {
+        printf("Error: Cannot open input file.\n");
+        return 1;
+    }
+
+    analyzeFile(input, &amp;a);
+    fclose(input);
+
+    displayReport(stdout, &amp;a);
+
+    report = fopen("report.txt", "w");
+    if (report == NULL) {
+        printf("\nCould not create report.txt\n");
+        return 1;
+    }
+
+    displayReport(report, &amp;a);
+    fclose(report);
+
+    printf("\nReport saved to report.txt\n");
+    return 0;
+}</pre></div>
+</section>
+</div>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},enc=new TextEncoder(),cur=null,store=[];
+function analyze(b){var a={c:0,w:0,l:0,f:new Array(26).fill(0)},inW=0,last=-1,i,x;
+for(i=0;i<b.length;i++){x=b[i];a.c++;last=x;if(x===10)a.l++;
+if(x===32||(x>=9&&x<=13))inW=0;else if(!inW){a.w++;inW=1}
+if((x>=65&&x<=90)||(x>=97&&x<=122))a.f[(x|32)-97]++}
+if(a.c>0&&last!==10)a.l++;return a}
+function maxOf(a){return Math.max.apply(null,a.f)}
+function tops(a){var m=maxOf(a);return m?a.f.map(function(v,i){return v===m?String.fromCharCode(97+i):''}).filter(Boolean):[]}
+function report(a){var s="\n=== TEXT FILE CONTENT ANALYZER ===\nCharacters: "+a.c+"\nWords     : "+a.w+"\nLines     : "+a.l+"\n\nLetter Frequencies:\n",m=maxOf(a);
+a.f.forEach(function(v,i){if(v>0)s+=String.fromCharCode(97+i)+" : "+v+"\n"});
+if(!m)s+="\nNo English letters found.\n";else s+="\nMost frequent letter(s): "+tops(a).join(" ")+" \nMaximum frequency: "+m+"\n";return s}
+function show(a,name){cur={a:a,name:name,text:report(a)};$('out').hidden=false;$('fname').textContent=name;
+$('sc').textContent=a.c;$('sw').textContent=a.w;$('sl').textContent=a.l;
+var m=maxOf(a),t=tops(a),h='';
+a.f.forEach(function(v,i){var L=String.fromCharCode(97+i);h+='<div class="bar'+(m&&v===m?' top':'')+'" title="'+L+': '+v+'"><i style="height:'+(m?Math.max(v/m*100,v?2:0):0)+'%"></i>'+L+'</div>'});
+$('bars').innerHTML=h;
+$('top').textContent=m?(t.length>1?'Tie: '+t.join(', ')+' each appear '+m+' times. All tied letters are listed alphabetically.':'Most frequent letter: '+t[0]+' ('+m+' times).'):'No English letters found in this text.';
+$('rep').textContent=cur.text}
+function chips(){$('files').innerHTML='';store.forEach(function(f,i){var b=document.createElement('button');b.className='chip';b.textContent=f.name;b.setAttribute('aria-pressed',cur&&cur.name===f.name);
+b.onclick=function(){show(analyze(f.bytes),f.name);chips()};$('files').appendChild(b)})}
+function load(list){var arr=Array.prototype.slice.call(list),n=arr.length;if(!n)return;store=[];
+arr.forEach(function(f){f.arrayBuffer().then(function(buf){store.push({name:f.name,bytes:new Uint8Array(buf)});if(store.length===n){show(analyze(store[0].bytes),store[0].name);chips()}})})}
+$('drop').onclick=function(){$('fi').click()};
+$('drop').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fi').click()}};
+$('fi').onchange=function(e){load(e.target.files)};
+['dragover','dragenter'].forEach(function(n){$('drop').addEventListener(n,function(e){e.preventDefault();$('drop').classList.add('on')})});
+['dragleave','drop'].forEach(function(n){$('drop').addEventListener(n,function(e){e.preventDefault();$('drop').classList.remove('on')})});
+$('drop').addEventListener('drop',function(e){load(e.dataTransfer.files)});
+$('go').onclick=function(){var t=$('ta').value;store=[];chips();show(analyze(enc.encode(t)),'Pasted text')};
+$('sample').onclick=function(){$('ta').value="Programming in C is fun.\nFiles are read one byte at a time.";$('go').click()};
+$('dl').onclick=function(){if(!cur)return;var u=URL.createObjectURL(new Blob([cur.text],{type:'text/plain'})),a=document.createElement('a');a.href=u;a.download='report.txt';a.click();setTimeout(function(){URL.revokeObjectURL(u)},500)};
+function copy(t,btn){var o=btn.textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){btn.textContent='Copied'},function(){btn.textContent='Copy failed'}).then(function(){setTimeout(function(){btn.textContent=o},1500)})}
+$('copy').onclick=function(){if(cur)copy(cur.text,$('copy'))};
+$('cc').onclick=function(){copy($('code').textContent,$('cc'))};
+var T=[["Empty file","",0,0,0,""],["No trailing newline","hello",5,1,1,"l"],["Trailing newline","hello\n",6,1,1,"l"],["Tie, alphabetical","a b\nc d\n",8,4,2,"a b c d"],["Whitespace only","   \n\t\n",6,0,2,""],["Digits and symbols","123 456!",8,2,1,""],["Mixed case","AaBb",4,1,1,"a b"],["Windows line ending","Hello World\r\nLine two",21,4,2,"l"],["Blank lines only","\n\n\n",3,0,3,""]];
+function run(){var h='<tr><th>Case</th><th>Expected (chars, words, lines, top)</th><th>Actual</th><th>Result</th></tr>';
+T.forEach(function(t){var a=analyze(enc.encode(t[1])),tp=tops(a).join(" "),ok=a.c===t[2]&&a.w===t[3]&&a.l===t[4]&&tp===t[5];
+h+='<tr><td>'+t[0]+'</td><td>'+t[2]+', '+t[3]+', '+t[4]+', '+(t[5]||'none')+'</td><td>'+a.c+', '+a.w+', '+a.l+', '+(tp||'none')+'</td><td class="'+(ok?'pass':'fail')+'">'+(ok?'Pass':'Fail')+'</td></tr>'});
+$('tt').innerHTML=h}
+$('run').onclick=run;run();
+var tabs=document.querySelectorAll('#tabs button');
+tabs.forEach(function(b){b.onclick=function(){tabs.forEach(function(x){x.setAttribute('aria-selected',x===b);$(x.dataset.t).hidden=x!==b})}});
+})();
+</script>
+</body>
+</html>
